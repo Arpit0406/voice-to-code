@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+// src/App.jsx
+import React, { useState, useRef } from "react";
+import axios from "axios";
 
-const VoiceRecorder = ({ onTranscription }) => {
+function App() {
+  const mediaRecorderRef = useRef(null);
   const [recording, setRecording] = useState(false);
 
   const startRecording = async () => {
-    setRecording(true);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const mediaRecorder = new MediaRecorder(stream);
     const audioChunks = [];
@@ -15,24 +16,25 @@ const VoiceRecorder = ({ onTranscription }) => {
     };
 
     mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
       const formData = new FormData();
-      formData.append('audio', audioBlob);
-      setTimeout(()=> {
-        console.log(formData)
-        
-      },5000)
-      console.log(JSON.stringify(formData))
+      formData.append("audio", audioBlob, "recording.webm");
 
-      const res = await axios.post('http://localhost:5000/generate', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      onTranscription(res.data.transcription);
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/upload",
+          formData
+        );
+        alert("Transcribed text: " + response.data.text);
+      } catch (err) {
+        console.error(err);
+        alert("Error uploading audio");
+      }
     };
 
     mediaRecorder.start();
+    setRecording(true);
+    mediaRecorderRef.current = mediaRecorder;
 
     setTimeout(() => {
       mediaRecorder.stop();
@@ -41,10 +43,13 @@ const VoiceRecorder = ({ onTranscription }) => {
   };
 
   return (
-    <button onClick={startRecording} className="p-2 bg-blue-500 text-white rounded">
-      {recording ? 'Recording...' : 'Start Voice Command'}
-    </button>
+    <div className="App">
+      <h1>Voice Recorder</h1>
+      <button onClick={startRecording} disabled={recording}>
+        {recording ? "Recording..." : "Record 5 Seconds"}
+      </button>
+    </div>
   );
-};
+}
 
-export default VoiceRecorder;
+export default App;
