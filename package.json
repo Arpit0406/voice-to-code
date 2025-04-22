@@ -1,0 +1,9 @@
+{
+  "name": "voice-to-code-assistant",
+  "version": "1.0.0",
+  "scripts": {
+    "client": "cd client && npm install && npm run dev",
+    "server": "cd server && npm install && node index.js",
+    "python": "cd server/python && pip install -r requirements.txt && python whisper_service.py"
+  }
+}
